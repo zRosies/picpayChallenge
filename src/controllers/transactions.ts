@@ -1,20 +1,36 @@
 import { Response, Request } from "express";
 import { getDb } from "../dbConnection/connection";
 
-interface Body {
-  value: string;
-  payer: number;
-  payee: number;
+interface Payload {
+  customer_info: {
+    customer_id: string;
+    name: string;
+    cpf: string;
+    email: string;
+    senha: string;
+    store_owner: false;
+  };
+
+  payment: {
+    value: string;
+    payer: string;
+    payee: string;
+  };
 }
 
 export const postTransacations = async (req: Request, res: Response) => {
-  const body: any = req.body;
+  const body: Payload = req.body;
 
   console.log(body);
 
-  if (!body.customer_info) {
+  if (body.customer_info.store_owner) {
     res.setHeader("Content-Type", "application/json");
-    res.status(400).json({ message: "Payload is required" });
+    res
+      .status(403)
+      .json({
+        message:
+          "You are not allowed to perform this operation as a store owner.",
+      });
     return;
   }
   try {
