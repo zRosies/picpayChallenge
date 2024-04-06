@@ -1,48 +1,45 @@
 import { Response, Request } from "express";
 import { getDb } from "../dbConnection/connection";
-
-interface Payload {
-  customer_info: {
-    customer_id: string;
-    name: string;
-    cpf: string;
-    email: string;
-    senha: string;
-    store_owner: false;
-  };
-
-  payment: {
-    value: string;
-    payer: string;
-    payee: string;
-  };
-}
+import { Account, Transaction } from "./types";
 
 export const postTransacations = async (req: Request, res: Response) => {
-  const body: Payload = req.body;
+  const body: Transaction = req.body;
+
+  // console.log(body);
 
   console.log(body);
 
-  if (body.customer_info.store_owner) {
-    res.setHeader("Content-Type", "application/json");
-    res
-      .status(403)
-      .json({
-        message:
-          "You are not allowed to perform this operation as a store owner.",
-      });
-    return;
-  }
   try {
-    const data = await getDb()
+    const user_info = await getDb()
       .db("picpay")
-      .collection("transactions")
-      .insertOne(body);
+      .collection("user_account")
+      .findOne({ user_id: body.payer_id });
 
-    if (data.acknowledged) {
+    if (user_info?.store_owner) {
       res.setHeader("Content-Type", "application/json");
-      res.status(201).json({ message: "Transaction made correctly" });
+      res.status(403).json({
+        error: "Store owners are not allowed to perform this operation. ",
+      });
+      return;
     }
+
+    if (user_info) {
+      res.setHeader("Content-Type", "application/json");
+      res.status(404).json({
+        message: "Payload missing necessary fields.",
+      });
+      return;
+    }
+
+    // const data = await getDb()
+    //   .db("picpay")
+    //   .collection("transactions")
+    //   .insertOne(body);
+
+    // if (data.acknowledged) {
+    //   res.setHeader("Content-Type", "application/json");
+    //   res.status(201).json({ message: "Transaction made correctly" });
+    // }
   } catch (error) {
     console.log({ message: error });
   }
