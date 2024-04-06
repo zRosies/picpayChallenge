@@ -1,7 +1,10 @@
 export interface Transaction {
-  value: string;
+  value: number;
   payer_id: string;
   receiver_id: string;
+  transaction_type: string;
+  date: string;
+  status?: string;
 }
 
 export interface Account {
@@ -9,6 +12,6 @@ export interface Account {
   name: string;
   cpf: string;
   email: string;
-  senha: string;
+  password: string;
   store_owner: false;
 }

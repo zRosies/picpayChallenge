@@ -1,35 +1,41 @@
 import { Response, Request } from "express";
 import { getDb } from "../dbConnection/connection";
-import { Account, Transaction } from "./types";
+import { Account, Transaction } from "./schema";
 
 export const postTransacations = async (req: Request, res: Response) => {
-  const body: Transaction = req.body;
+  const transaction: any = req.body;
 
-  // console.log(body);
-
-  console.log(body);
-
+  // ----- Forbidding store owners to be able to transfer. -----
+  // ----- Sending the failed transaction to the db -----------
   try {
     const user_info = await getDb()
       .db("picpay")
       .collection("user_account")
-      .findOne({ user_id: body.payer_id });
+      .findOne({ user_id: transaction.payer_id });
 
-    if (user_info?.store_owner) {
-      res.setHeader("Content-Type", "application/json");
-      res.status(403).json({
-        error: "Store owners are not allowed to perform this operation. ",
-      });
-      return;
+    if (user_info?.store_owner || transaction.value > 50000) {
+      const failedTransaction = { ...transaction, status: "failed" };
+
+      const data = await getDb()
+        .db("picpay")
+        .collection("transactions")
+        .insertOne(failedTransaction);
+
+      if (data.acknowledged) {
+        res.status(403).json({
+          error: "You are not allowed to perform this operation. ",
+        });
+        return;
+      }
     }
 
-    if (user_info) {
-      res.setHeader("Content-Type", "application/json");
-      res.status(404).json({
-        message: "Payload missing necessary fields.",
-      });
-      return;
-    }
+    // --- Sending the successful transaction -----
+    // --- Delivering the money to the receiver----
+
+    const receiver_info = await getDb()
+      .db("picpay")
+      .collection("balance")
+      .findOne({ user_id: transaction.receiver_id });
 
     // const data = await getDb()
     //   .db("picpay")
