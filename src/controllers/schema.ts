@@ -15,3 +15,8 @@ export interface Account {
   password: string;
   store_owner: false;
 }
+
+export interface Balance {
+  user_id: string;
+  balance: number;
+}

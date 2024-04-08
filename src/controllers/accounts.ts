@@ -7,7 +7,6 @@ export const createAccount = async (req: Request, res: Response) => {
   const body: Account = req.body;
 
   if (!body.user_id) {
-    res.setHeader("Content-Type", "application/json");
     res.status(404).json({
       message: "Payload missing necessary fields.",
     });
@@ -21,7 +20,6 @@ export const createAccount = async (req: Request, res: Response) => {
       .findOne({ $or: [{ email: body.email }, { cpf: body.cpf }] });
 
     if (existingUser) {
-      res.setHeader("Content-Type", "application/json");
       res.status(404).json({
         message: "email or cpf already in use.",
       });
@@ -37,7 +35,7 @@ export const createAccount = async (req: Request, res: Response) => {
         .collection("user_account")
         .insertOne({ ...body, password: hashedPassword }),
 
-      getDb().db("picpay").collection("user_account").insertOne({
+      getDb().db("picpay").collection("balance").insertOne({
         user_id: body.user_id,
         balance: 0,
       }),

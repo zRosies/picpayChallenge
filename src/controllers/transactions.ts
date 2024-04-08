@@ -1,11 +1,11 @@
 import { Response, Request } from "express";
 import { getDb } from "../dbConnection/connection";
-import { Account, Transaction } from "./schema";
+import { Account, Balance, Transaction } from "./schema";
 
 export const postTransacations = async (req: Request, res: Response) => {
-  const transaction: any = req.body;
+  const transaction: Transaction = req.body;
 
-  // ----- Forbidding store owners to be able to transfer. -----
+  // ----- Forbidding store owners to be able to transfer -----
   // ----- Sending the failed transaction to the db -----------
   try {
     const user_info = await getDb()
@@ -14,7 +14,7 @@ export const postTransacations = async (req: Request, res: Response) => {
       .findOne({ user_id: transaction.payer_id });
 
     if (user_info?.store_owner || transaction.value > 50000) {
-      const failedTransaction = { ...transaction, status: "failed" };
+      const failedTransaction = { ...transaction, status: "blocked" };
 
       const data = await getDb()
         .db("picpay")
@@ -37,15 +37,26 @@ export const postTransacations = async (req: Request, res: Response) => {
       .collection("balance")
       .findOne({ user_id: transaction.receiver_id });
 
-    // const data = await getDb()
-    //   .db("picpay")
-    //   .collection("transactions")
-    //   .insertOne(body);
+    const newBalance = receiver_info?.balance + transaction.value;
 
-    // if (data.acknowledged) {
-    //   res.setHeader("Content-Type", "application/json");
-    //   res.status(201).json({ message: "Transaction made correctly" });
-    // }
+    const [balanceUpdated, transactionSent] = await Promise.all([
+      getDb()
+        .db("picpay")
+        .collection("balance")
+        .updateOne(
+          { user_id: transaction.receiver_id },
+          { $set: { ...receiver_info, balance: newBalance } }
+        ),
+      getDb()
+        .db("picpay")
+        .collection("transactions")
+        .insertOne({ ...transaction, status: "success" }),
+    ]);
+
+    if (balanceUpdated.acknowledged && transactionSent.acknowledged) {
+      // res.setHeader("Content-Type", "application/json");
+      res.status(201).json({ message: "Transaction completed sucessfuly" });
+    }
   } catch (error) {
     console.log({ message: error });
   }
