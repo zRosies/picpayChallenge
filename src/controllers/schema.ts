@@ -16,6 +16,14 @@ export interface Account {
   store_owner: false;
 }
 
+export interface UpdateAccount {
+  name?: string;
+  cpf?: string;
+  email?: string;
+  password?: string;
+  store_owner?: false;
+}
+
 export interface Balance {
   user_id: string;
   balance: number;

@@ -50,3 +50,19 @@ export const validate = (req: Request, res: Response, next: NextFunction) => {
     errors: extractedErrors,
   });
 };
+
+export const tokenValidation = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const token = req.headers.authorization;
+
+  if (!token || token != process.env.TOKEN) {
+    return res.status(401).json({
+      message: "Unauthorized! You have no token to perform this operation",
+    });
+  }
+
+  return next();
+};

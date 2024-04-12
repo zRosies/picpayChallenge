@@ -1,17 +1,11 @@
 import { Response, Request } from "express";
 import { getDb } from "../dbConnection/connection";
-import { Account } from "./schema";
+import { Account, UpdateAccount } from "./schema";
 import bcrypt from "bcryptjs";
+import { ObjectId } from "mongodb";
 
 export const createAccount = async (req: Request, res: Response) => {
   const body: Account = req.body;
-
-  if (!body.user_id) {
-    res.status(404).json({
-      message: "Payload missing necessary fields.",
-    });
-    return;
-  }
 
   try {
     const existingUser = await getDb()
@@ -45,6 +39,85 @@ export const createAccount = async (req: Request, res: Response) => {
       res.setHeader("Content-Type", "application/json");
       res.status(201).json({ message: "Account created successfuly" });
     }
+  } catch (error) {
+    console.log({ message: error });
+  }
+};
+
+export const getAllAccounts = async (req: Request, res: Response) => {
+  try {
+    // Adding a new account information and a balance for the new user account.
+
+    const response = await getDb()
+      .db("picpay")
+      .collection("user_account")
+      .find()
+      .toArray();
+
+    if (!response) {
+      return res.status(404).json({ message: "no data found" });
+    }
+    return res.status(200).json(response);
+  } catch (error) {
+    console.log({ message: error });
+  }
+};
+
+export const getAllAccountById = async (req: Request, res: Response) => {
+  try {
+    const response = await getDb()
+      .db("picpay")
+      .collection("user_account")
+      .findOne({ user_id: req.params.user_id });
+
+    if (!response) {
+      return res.status(404).json({ message: "No account found with this ID" });
+    }
+    return res.status(200).json(response);
+  } catch (error) {
+    console.log({ message: error });
+  }
+};
+
+export const updateAccount = async (req: Request, res: Response) => {
+  let updateAccount: UpdateAccount = req.body;
+
+  // Just in case the password is changed
+  if (req.body.password) {
+    const hashedPassword = await bcrypt.hash(req.body.password, 5);
+
+    updateAccount = {
+      ...req.body,
+      password: hashedPassword,
+    };
+  }
+
+  try {
+    const response = await getDb()
+      .db("picpay")
+      .collection("user_account")
+      .updateOne({ user_id: req.params.user_id }, { $set: updateAccount });
+
+    if (!response) {
+      return res.status(404).json({ message: "No account found with this ID" });
+    }
+    return res.status(200).json(response);
+  } catch (error) {
+    console.log({ message: error });
+  }
+};
+
+export const deleteAccount = async (req: Request, res: Response) => {
+  try {
+    const response = await getDb()
+      .db("picpay")
+      .collection("user_account")
+      .deleteOne({ user_id: req.params.user_id });
+
+    if (!response) {
+      return res.status(404).json({ message: "No account found with this ID" });
+    }
+    return res.status(200).json(response);
   } catch (error) {
     console.log({ message: error });
   }

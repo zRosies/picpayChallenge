@@ -18,6 +18,9 @@ app
     res.setHeader("Access-Control-Origin", "*");
     next();
   })
+  .get("/", (req: Request, res: Response) => {
+    res.send("PicPay Challenge!");
+  })
   .use("/", routes);
 
 initDb((err: Error | null) => {
@@ -29,3 +32,5 @@ initDb((err: Error | null) => {
     });
   }
 });
+
+export default app;
