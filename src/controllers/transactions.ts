@@ -1,5 +1,5 @@
 import { Response, Request } from "express";
-import { getDb } from "../dbConnection/connection";
+import { getDb } from "../connection/connection";
 import { Account, Balance, Transaction } from "./schema";
 import { ObjectId } from "mongodb";
 

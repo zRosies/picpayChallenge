@@ -1,5 +1,5 @@
 import { Response, Request } from "express";
-import { getDb } from "../dbConnection/connection";
+import { getDb } from "../connection/connection";
 
 export const getAllBalances = async (req: Request, res: Response) => {
   try {

@@ -1,8 +1,7 @@
 import { Response, Request } from "express";
-import { getDb } from "../dbConnection/connection";
+import { getDb } from "../connection/connection";
 import { Account, UpdateAccount } from "./schema";
 import bcrypt from "bcryptjs";
-import { ObjectId } from "mongodb";
 
 export const createAccount = async (req: Request, res: Response) => {
   const body: Account = req.body;

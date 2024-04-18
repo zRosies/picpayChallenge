@@ -2,9 +2,9 @@ import express from "express";
 import bodyParser from "body-parser";
 import dotenv from "dotenv";
 import cors from "cors";
-import routes from "./routes/switcher";
+import routes from "./routes/router";
 import { Request, Response, NextFunction } from "express";
-import { initDb } from "./dbConnection/connection";
+import { initDb } from "./connection/connection";
 
 dotenv.config();
 
