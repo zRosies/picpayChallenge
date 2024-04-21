@@ -11,15 +11,14 @@ import {
   validate,
   validateAccount,
 } from "../validation/validator";
-
-import { authenticateToken } from "./authentication";
+import { authentication } from "./authentication";
 
 const route = express.Router();
 
-route.post("/", tokenValidation, validateAccount(), validate, createAccount);
-route.get("/", authenticateToken, getAllAccounts);
-route.get("/:user_id", authenticateToken, getAllAccountById);
-route.put("/:user_id", tokenValidation, updateAccount);
-route.delete("/:user_id", tokenValidation, deleteAccount);
+route.post("/", authentication, validateAccount(), validate, createAccount);
+route.get("/", getAllAccounts);
+route.get("/:user_id", getAllAccountById);
+route.put("/:user_id", authentication, updateAccount);
+route.delete("/:user_id", authentication, deleteAccount);
 
 export default route;
